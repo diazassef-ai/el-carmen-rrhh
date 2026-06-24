@@ -1,0 +1,41 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Ausentes Hoy{% endblock %}
+{% block page_subtitle %}Quienes estan ausentes hoy: {{ hoy }}{% endblock %}
+{% block content %}
+<div class="panel-card p-3">
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+      <select name="unidad" class="form-select">
+        <option value="">Todas las unidades</option>
+        {% for item in unidades %}<option value="{{ item }}" {% if item == unidad %}selected{% endif %}>{{ item }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <select name="tipo" class="form-select">
+        <option value="">Todos los tipos</option>
+        {% for value,label in tipos %}<option value="{{ value }}" {% if value == tipo %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4"><button class="btn btn-outline-secondary">Filtrar</button></div>
+  </form>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>Funcionario</th><th>Cargo</th><th>Unidad</th><th>Tipo</th><th>Retorno</th><th>Horario</th></tr></thead>
+      <tbody>
+      {% for s in ausentes %}
+        <tr>
+          <td class="fw-semibold">{{ s.funcionario.nombre_completo }}</td>
+          <td>{{ s.funcionario.cargo }}</td>
+          <td>{{ s.funcionario.unidad }}</td>
+          <td>{{ s.tipo_solicitud }}</td>
+          <td>{{ s.fecha_retorno }}</td>
+          <td>{{ s.horario }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="text-muted">No hay ausencias vigentes para hoy.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

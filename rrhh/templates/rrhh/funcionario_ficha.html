@@ -1,0 +1,51 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Ficha individual{% endblock %}
+{% block page_subtitle %}{{ funcionario.nombre_completo }}{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-lg-4">
+    <div class="panel-card p-3 h-100">
+      <h2 class="h6">Informacion general</h2>
+      <dl class="mb-0">
+        <dt>RUT</dt><dd>{{ funcionario.rut }}</dd>
+        <dt>Cargo</dt><dd>{{ funcionario.cargo }}</dd>
+        <dt>Unidad</dt><dd>{{ funcionario.unidad }}</dd>
+        <dt>Contrato</dt><dd>{{ funcionario.tipo_contrato }}</dd>
+        <dt>Correo</dt><dd>{{ funcionario.correo_electronico|default:"Sin correo" }}</dd>
+      </dl>
+      <a href="{% url 'rrhh_funcionario_editar' funcionario.pk %}" class="btn btn-sm btn-outline-primary mt-3">Editar ficha</a>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="row g-3">
+      <div class="col-md-4"><div class="metric-card"><span>Dias ausentes</span><strong>{{ funcionario.total_dias_ausentes }}</strong></div></div>
+      <div class="col-md-4"><div class="metric-card"><span>Total permisos</span><strong>{{ funcionario.total_permisos }}</strong></div></div>
+      <div class="col-md-4"><div class="metric-card"><span>Capacitaciones</span><strong>{{ funcionario.total_capacitaciones }}</strong></div></div>
+    </div>
+  </div>
+</div>
+<div class="panel-card p-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h2 class="h6 mb-0">Historial de permisos y capacitaciones</h2>
+    <a href="{% url 'rrhh_solicitud_crear' %}" class="btn btn-sm btn-rrhh">Nueva solicitud</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>Fechas</th><th>Tipo</th><th>Dias</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+      {% for s in solicitudes %}
+        <tr>
+          <td>{{ s.fecha_desde }} - {{ s.fecha_hasta }}</td>
+          <td>{{ s.tipo_solicitud }}</td>
+          <td>{{ s.numero_dias }}</td>
+          <td><span class="status-pill bg-light text-dark">{{ s.estado }}</span></td>
+          <td class="text-end"><a href="{% url 'rrhh_solicitud_detalle' s.pk %}" class="btn btn-sm btn-outline-secondary">Ver</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted">Sin registros.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

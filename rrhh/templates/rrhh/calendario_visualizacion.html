@@ -1,0 +1,235 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vista Calendario - El Carmen RRHH</title>
+  <link rel="stylesheet" href="{% static 'rrhh/app.css' %}">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f8fafc;
+      color: #1f2937;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .viewer-header {
+      align-items: center;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      padding: 14px 22px;
+    }
+    .viewer-brand {
+      align-items: center;
+      display: flex;
+      gap: 14px;
+      min-width: 0;
+    }
+    .viewer-logo {
+      height: 52px;
+      object-fit: contain;
+      width: 52px;
+    }
+    h1 {
+      color: #134e4a;
+      font-size: 24px;
+      line-height: 1.1;
+      margin: 0;
+    }
+    .muted {
+      color: #64748b;
+      font-size: 14px;
+    }
+    .viewer-main {
+      padding: 16px;
+    }
+    .calendar-shell {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, .04);
+      overflow: hidden;
+    }
+    .calendar-toolbar {
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      padding: 14px 16px;
+    }
+    .calendar-title {
+      color: #0f766e;
+      font-size: 24px;
+      font-weight: 800;
+      margin: 0;
+      text-align: center;
+    }
+    .toolbar-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .calendar-button {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      color: #334155;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 12px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .calendar-button.primary {
+      background: #0f766e;
+      border-color: #0f766e;
+      color: #ffffff;
+    }
+    .calendar-weekdays,
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    .calendar-weekdays div {
+      background: #f1f5f9;
+      border-bottom: 1px solid #e5e7eb;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 10px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .calendar-day {
+      border-bottom: 1px solid #e5e7eb;
+      border-right: 1px solid #e5e7eb;
+      min-height: 128px;
+      padding: 8px;
+    }
+    .calendar-day:nth-child(7n) {
+      border-right: 0;
+    }
+    .calendar-day.outside {
+      background: #f8fafc;
+      color: #94a3b8;
+    }
+    .calendar-day.today {
+      outline: 3px solid #99f6e4;
+      outline-offset: -3px;
+    }
+    .day-number {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .event-pill {
+      border-left: 5px solid #64748b;
+      background: #f8fafc;
+      border-radius: 6px;
+      color: #1f2937;
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 5px;
+      padding: 6px 7px;
+      text-decoration: none;
+    }
+    .event-meta {
+      color: #64748b;
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .empty-note {
+      color: #94a3b8;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 900px) {
+      .viewer-header,
+      .calendar-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .calendar-weekdays {
+        display: none;
+      }
+      .calendar-grid {
+        display: block;
+      }
+      .calendar-day {
+        border-right: 0;
+        min-height: 96px;
+      }
+    }
+  </style>
+</head>
+<body>
+<header class="viewer-header">
+  <div class="viewer-brand">
+    <img src="{% static 'img/logo_cesfam_el_carmen.png' %}" onerror="this.src='{% static 'img/logo_cesfam.png' %}'" class="viewer-logo" alt="CESFAM El Carmen">
+    <div>
+      <h1>EL CARMEN RRHH</h1>
+      <div class="muted">Calendario de ausencias del personal</div>
+    </div>
+  </div>
+  <div class="muted">CESFAM El Carmen, Temuco</div>
+  <a class="calendar-button" href="{% url 'logout' %}" data-global-logout>Cerrar sesion</a>
+</header>
+<main class="viewer-main">
+  <section class="calendar-shell">
+    <div class="calendar-toolbar">
+      <div>
+        <h2 class="calendar-title">{{ nombre_mes }}</h2>
+        <div class="muted">{{ total_solicitudes_mes }} registro(s) visibles en este mes</div>
+      </div>
+      <div class="toolbar-actions">
+        <a class="calendar-button" href="?anio={{ mes_anterior.anio }}&mes={{ mes_anterior.mes }}">Anterior</a>
+        <a class="calendar-button primary" href="?anio={{ hoy.anio }}&mes={{ hoy.mes }}">Hoy</a>
+        <a class="calendar-button" href="?anio={{ mes_siguiente.anio }}&mes={{ mes_siguiente.mes }}">Siguiente</a>
+      </div>
+    </div>
+    <div class="calendar-weekdays">
+      <div>Lunes</div>
+      <div>Martes</div>
+      <div>Miercoles</div>
+      <div>Jueves</div>
+      <div>Viernes</div>
+      <div>Sabado</div>
+      <div>Domingo</div>
+    </div>
+    <div class="calendar-grid">
+      {% for semana in semanas %}
+        {% for dia in semana %}
+          <div class="calendar-day {% if not dia.en_mes %}outside{% endif %} {% if dia.es_hoy %}today{% endif %}">
+            <div class="day-number">{{ dia.fecha.day }}</div>
+            {% for solicitud in dia.solicitudes %}
+              <div class="event-pill" style="border-left-color: {{ solicitud.color_calendario }}">
+                {{ solicitud.funcionario.nombre_completo }}
+                <span class="event-meta">{{ solicitud.funcionario.unidad }} · {{ solicitud.tipo_solicitud }}</span>
+              </div>
+            {% empty %}
+              {% if dia.en_mes %}<div class="empty-note">Sin ausencias</div>{% endif %}
+            {% endfor %}
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </section>
+</main>
+<script>
+  window.RRHH_SECURITY = {
+    idleTimeoutSeconds: {{ IDLE_TIMEOUT_SECONDS }},
+    loginUrl: "{% url 'login' %}",
+    logoutUrl: "{% url 'logout' %}"
+  };
+</script>
+<script src="{% static 'rrhh/session_security.js' %}"></script>
+</body>
+</html>

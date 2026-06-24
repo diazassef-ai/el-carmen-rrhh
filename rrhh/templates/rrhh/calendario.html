@@ -1,0 +1,56 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Calendario de Ausencias{% endblock %}
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="panel-card p-3">
+  <div id="calendar"></div>
+</div>
+<div class="modal fade" id="eventoModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="eventoTitulo">Ausencia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="eventoDetalle"></div>
+      <div class="modal-footer">
+        <a id="eventoLink" class="btn btn-rrhh" href="#">Ver registro</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = new bootstrap.Modal(document.getElementById('eventoModal'));
+  const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+    initialView: 'dayGridMonth',
+    locale: 'es',
+    height: 'auto',
+    headerToolbar: {left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay'},
+    events: "{% url 'rrhh_calendario_eventos' %}",
+    eventClick: function(info) {
+      info.jsEvent.preventDefault();
+      const p = info.event.extendedProps;
+      document.getElementById('eventoTitulo').textContent = info.event.title;
+      document.getElementById('eventoDetalle').innerHTML = `
+        <dl class="row mb-0">
+          <dt class="col-4">RUT</dt><dd class="col-8">${p.rut}</dd>
+          <dt class="col-4">Cargo</dt><dd class="col-8">${p.cargo}</dd>
+          <dt class="col-4">Unidad</dt><dd class="col-8">${p.unidad}</dd>
+          <dt class="col-4">Tipo</dt><dd class="col-8">${p.tipo}</dd>
+          <dt class="col-4">Horario</dt><dd class="col-8">${p.horario}</dd>
+          <dt class="col-4">Estado</dt><dd class="col-8">${p.estado}</dd>
+        </dl>`;
+      document.getElementById('eventoLink').href = p.detalleUrl;
+      modal.show();
+    }
+  });
+  calendar.render();
+});
+</script>
+{% endblock %}

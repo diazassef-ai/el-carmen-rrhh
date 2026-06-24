@@ -1,0 +1,36 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Reportes Excel{% endblock %}
+{% block content %}
+<div class="panel-card p-3 mb-3">
+  <form method="get" class="row g-3">
+    {% for field in form %}
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">{{ field.label }}</label>
+        {{ field }}
+      </div>
+    {% endfor %}
+    <div class="col-12 d-flex gap-2">
+      <button class="btn btn-outline-secondary">Filtrar</button>
+      <button class="btn btn-rrhh" name="exportar" value="1">Exportar Excel</button>
+    </div>
+  </form>
+</div>
+<div class="panel-card p-3">
+  <h2 class="h6">Vista previa</h2>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead><tr><th>Inicio</th><th>Termino</th><th>Funcionario</th><th>Unidad</th><th>Tipo</th><th>Dias</th><th>Estado</th></tr></thead>
+      <tbody>
+      {% for s in solicitudes %}
+        <tr>
+          <td>{{ s.fecha_desde }}</td><td>{{ s.fecha_hasta }}</td><td>{{ s.funcionario.nombre_completo }}</td>
+          <td>{{ s.funcionario.unidad }}</td><td>{{ s.tipo_solicitud }}</td><td>{{ s.numero_dias }}</td><td>{{ s.estado }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="text-muted">Sin registros para los filtros seleccionados.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

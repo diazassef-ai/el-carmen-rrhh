@@ -1,0 +1,49 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Busqueda Global{% endblock %}
+{% block content %}
+<div class="panel-card p-3 mb-3">
+  <form method="get" class="d-flex gap-2">
+    <input name="q" value="{{ q }}" class="form-control" placeholder="Nombre, RUT, cargo, unidad o tipo de solicitud">
+    <button class="btn btn-rrhh">Buscar</button>
+  </form>
+</div>
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="panel-card p-3">
+      <h2 class="h6">Funcionarios</h2>
+      <div class="list-group list-group-flush">
+      {% for f in funcionarios %}
+        <a class="list-group-item list-group-item-action" href="{{ f.get_absolute_url }}">
+          <strong>{{ f.nombre_completo }}</strong><br><span class="text-muted">{{ f.rut }} - {{ f.cargo }} - {{ f.unidad }}</span>
+        </a>
+      {% empty %}
+        <p class="text-muted mb-0">Sin resultados.</p>
+      {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="panel-card p-3">
+      <h2 class="h6">Solicitudes</h2>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead><tr><th>Funcionario</th><th>Tipo</th><th>Fecha</th><th>Estado</th><th></th></tr></thead>
+          <tbody>
+          {% for s in solicitudes %}
+            <tr>
+              <td>{{ s.funcionario.nombre_completo }}</td>
+              <td>{{ s.tipo_solicitud }}</td>
+              <td>{{ s.fecha_desde }}</td>
+              <td>{{ s.estado }}</td>
+              <td><a href="{% url 'rrhh_solicitud_detalle' s.pk %}">Ver</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-muted">Sin resultados.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Inicio{% endblock %}
+{% block page_subtitle %}Bienvenido a El Carmen RRHH, plataforma de gestion de permisos, capacitaciones y ausentismo del personal del CESFAM El Carmen.{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4 col-xl-2"><div class="metric-card"><span>Permisos del mes</span><strong>{{ permisos_mes }}</strong></div></div>
+  <div class="col-md-4 col-xl-2"><div class="metric-card"><span>Capacitaciones</span><strong>{{ capacitaciones_mes }}</strong></div></div>
+  <div class="col-md-4 col-xl-2"><div class="metric-card"><span>Ausentes hoy</span><strong>{{ ausentes_hoy }}</strong></div></div>
+  <div class="col-md-4 col-xl-2"><div class="metric-card"><span>Pendientes</span><strong>{{ pendientes }}</strong></div></div>
+  <div class="col-md-4 col-xl-2"><div class="metric-card"><span>Aprobadas</span><strong>{{ aprobadas }}</strong></div></div>
+  <div class="col-md-4 col-xl-2"><div class="metric-card"><span>Dias acumulados</span><strong>{{ dias_acumulados }}</strong></div></div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-6"><div class="panel-card p-3"><h2 class="h6">Ausencias por unidad</h2><canvas id="chartUnidad"></canvas></div></div>
+  <div class="col-lg-6"><div class="panel-card p-3"><h2 class="h6">Ausencias por tipo</h2><canvas id="chartTipo"></canvas></div></div>
+  <div class="col-lg-7"><div class="panel-card p-3"><h2 class="h6">Ausencias por mes</h2><canvas id="chartMes"></canvas></div></div>
+  <div class="col-lg-5">
+    <div class="panel-card p-3">
+      <h2 class="h6">Top funcionarios con mas ausencias</h2>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>Funcionario</th><th>Dias</th><th>Registros</th></tr></thead>
+          <tbody>
+          {% for item in top_funcionarios %}
+            <tr><td>{{ item.funcionario__nombre_completo }}</td><td>{{ item.total_dias }}</td><td>{{ item.total }}</td></tr>
+          {% empty %}
+            <tr><td colspan="3" class="text-muted">Sin datos.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const unidad = {{ por_unidad|safe }};
+const tipo = {{ por_tipo|safe }};
+const mes = {{ por_mes|safe }};
+function barChart(id, data, color) {
+  new Chart(document.getElementById(id), {type: 'bar', data: {labels: data.labels, datasets: [{data: data.values, backgroundColor: color}]}, options: {plugins: {legend: {display: false}}, responsive: true}});
+}
+barChart('chartUnidad', unidad, '#0f766e');
+barChart('chartTipo', tipo, '#f59e0b');
+barChart('chartMes', mes, '#2563eb');
+</script>
+{% endblock %}

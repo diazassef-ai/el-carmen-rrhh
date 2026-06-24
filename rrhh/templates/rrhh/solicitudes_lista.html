@@ -1,0 +1,34 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Permisos y Capacitaciones{% endblock %}
+{% block content %}
+<div class="panel-card p-3">
+  <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+    <form method="get" class="d-flex gap-2">
+      <input name="q" value="{{ q }}" class="form-control" placeholder="Nombre, RUT, unidad o tipo">
+      <button class="btn btn-outline-secondary">Buscar</button>
+    </form>
+    <a href="{% url 'rrhh_solicitud_crear' %}" class="btn btn-rrhh">Nueva solicitud</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>Funcionario</th><th>Unidad</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Dias</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+      {% for s in solicitudes %}
+        <tr>
+          <td class="fw-semibold">{{ s.funcionario.nombre_completo }}</td>
+          <td>{{ s.funcionario.unidad }}</td>
+          <td>{{ s.tipo_solicitud }}</td>
+          <td>{{ s.fecha_desde }}</td>
+          <td>{{ s.fecha_hasta }}</td>
+          <td>{{ s.numero_dias }}</td>
+          <td><span class="status-pill bg-light text-dark">{{ s.estado }}</span></td>
+          <td class="text-end"><a href="{% url 'rrhh_solicitud_detalle' s.pk %}" class="btn btn-sm btn-outline-primary">Ver</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8" class="text-muted">Sin solicitudes registradas.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

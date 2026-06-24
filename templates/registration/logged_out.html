@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sesion cerrada - El Carmen RRHH</title>
+</head>
+<body>
+  <script>
+    localStorage.setItem("elCarmenRrhh:logoutAt", String(Date.now()));
+    localStorage.removeItem("elCarmenRrhh:lastActivity");
+    window.location.replace("{% url 'login' %}");
+  </script>
+  <p>Sesion cerrada. Redirigiendo...</p>
+</body>
+</html>

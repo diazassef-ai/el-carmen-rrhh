@@ -1,0 +1,57 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Detalle de solicitud{% endblock %}
+{% block page_subtitle %}{{ solicitud.funcionario.nombre_completo }} - {{ solicitud.tipo_solicitud }}{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="panel-card p-3">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <h2 class="h6">Registro administrativo</h2>
+        <div class="d-flex gap-2">
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'rrhh_solicitud_editar' solicitud.pk %}">Editar</a>
+          <a class="btn btn-sm btn-outline-danger" href="{% url 'rrhh_solicitud_anular' solicitud.pk %}">Anular</a>
+        </div>
+      </div>
+      <dl class="row mb-0">
+        <dt class="col-sm-4">Funcionario</dt><dd class="col-sm-8">{{ solicitud.funcionario.nombre_completo }} ({{ solicitud.funcionario.rut }})</dd>
+        <dt class="col-sm-4">Cargo</dt><dd class="col-sm-8">{{ solicitud.funcionario.cargo }}</dd>
+        <dt class="col-sm-4">Contrato</dt><dd class="col-sm-8">{{ solicitud.funcionario.tipo_contrato }}</dd>
+        <dt class="col-sm-4">Unidad</dt><dd class="col-sm-8">{{ solicitud.funcionario.unidad }}</dd>
+        <dt class="col-sm-4">Tipo</dt><dd class="col-sm-8">{{ solicitud.tipo_solicitud }}</dd>
+        <dt class="col-sm-4">Fechas</dt><dd class="col-sm-8">{{ solicitud.fecha_desde }} - {{ solicitud.fecha_hasta }}</dd>
+        <dt class="col-sm-4">Horario</dt><dd class="col-sm-8">{{ solicitud.horario }}</dd>
+        <dt class="col-sm-4">Dias</dt><dd class="col-sm-8">{{ solicitud.numero_dias }}</dd>
+        <dt class="col-sm-4">Dias pendientes</dt><dd class="col-sm-8">{{ solicitud.dias_pendientes|default:"-" }}</dd>
+        <dt class="col-sm-4">Estado</dt><dd class="col-sm-8">{{ solicitud.estado }}</dd>
+        <dt class="col-sm-4">Observaciones</dt><dd class="col-sm-8">{{ solicitud.observaciones|default:"Sin observaciones" }}</dd>
+      </dl>
+      {% if solicitud.es_capacitacion %}
+      <hr>
+      <h3 class="h6">Datos de capacitacion</h3>
+      <p class="mb-1"><strong>Nombre:</strong> {{ solicitud.nombre_capacitacion }}</p>
+      <p class="mb-1"><strong>Institucion:</strong> {{ solicitud.institucion_organizadora|default:"-" }}</p>
+      <p class="mb-1"><strong>Modalidad:</strong> {{ solicitud.modalidad|default:"-" }}</p>
+      <p class="mb-0"><strong>Lugar:</strong> {{ solicitud.lugar|default:"-" }}</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="panel-card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h6 mb-0">Documentos adjuntos</h2>
+        <a href="{% url 'rrhh_adjunto_crear' solicitud.pk %}" class="btn btn-sm btn-rrhh">Adjuntar</a>
+      </div>
+      {% for adjunto in solicitud.adjuntos.all %}
+        <div class="border rounded p-2 mb-2">
+          <div class="fw-semibold">{{ adjunto.nombre }}</div>
+          <a href="{{ adjunto.archivo.url }}" target="_blank">Visualizar</a>
+          <span class="text-muted">|</span>
+          <a href="{{ adjunto.archivo.url }}" download>Descargar</a>
+        </div>
+      {% empty %}
+        <p class="text-muted mb-0">Sin documentos adjuntos.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
