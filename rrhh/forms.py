@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import DocumentoAdjunto, Funcionario, PermisoCapacitacion
+from .models import AgendaClinicaMovil, DocumentoAdjunto, Funcionario, PermisoCapacitacion
 
 
 class BootstrapModelForm(forms.ModelForm):
@@ -65,6 +65,30 @@ class DocumentoAdjuntoForm(BootstrapModelForm):
     class Meta:
         model = DocumentoAdjunto
         fields = ["archivo", "nombre"]
+
+
+class AgendaClinicaMovilForm(BootstrapModelForm):
+    class Meta:
+        model = AgendaClinicaMovil
+        fields = [
+            "clinica",
+            "fecha",
+            "hora_inicio",
+            "hora_termino",
+            "lugar",
+            "sector",
+            "cupos_totales",
+            "cupos_reservados",
+            "responsable",
+            "estado",
+            "observaciones",
+        ]
+        widgets = {
+            "fecha": forms.DateInput(attrs={"type": "date"}),
+            "hora_inicio": forms.TimeInput(attrs={"type": "time"}),
+            "hora_termino": forms.TimeInput(attrs={"type": "time"}),
+            "observaciones": forms.Textarea(attrs={"rows": 3}),
+        }
 
 
 class ReporteExcelForm(forms.Form):

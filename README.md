@@ -60,7 +60,13 @@ Nota: este blueprint no crea PostgreSQL para evitar cobros en Render. Usa SQLite
 - `DJANGO_SUPERUSER_USERNAME`: usuario administrador inicial. Valor sugerido: `admin`.
 - `DJANGO_SUPERUSER_EMAIL`: correo del administrador inicial.
 - `DJANGO_SUPERUSER_PASSWORD`: clave del administrador inicial. Obligatoria en Render Free porque no hay Shell.
+- `DJANGO_CLINICAS_USERNAME`: usuario operativo para clinicas moviles. Valor sugerido: `clinicas`.
+- `DJANGO_CLINICAS_PASSWORD`: clave del usuario operativo de clinicas moviles.
 
 ## Seguridad de sesion
 
 La plataforma cierra la sesion por inactividad a nivel servidor y navegador. Al usar "Cerrar sesion" en una ventana, las demas pestanas abiertas detectan el cierre y vuelven al login.
+
+## Clinicas moviles
+
+El sistema incluye un modulo para agendar dos clinicas moviles, registrar lugar, sector, horario, cupos totales y cupos reservados. El calendario muestra los cupos disponibles por agendamiento.

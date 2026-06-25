@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import DocumentoAdjunto, Funcionario, PermisoCapacitacion
+from .models import AgendaClinicaMovil, ClinicaMovil, DocumentoAdjunto, Funcionario, PermisoCapacitacion
 
 
 class DocumentoAdjuntoInline(admin.TabularInline):
@@ -27,3 +27,26 @@ class PermisoCapacitacionAdmin(admin.ModelAdmin):
 class DocumentoAdjuntoAdmin(admin.ModelAdmin):
     list_display = ("nombre", "solicitud", "subido_en")
     search_fields = ("nombre", "solicitud__funcionario__nombre_completo")
+
+
+@admin.register(ClinicaMovil)
+class ClinicaMovilAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "descripcion", "activa")
+    list_filter = ("activa",)
+    search_fields = ("nombre", "descripcion")
+
+
+@admin.register(AgendaClinicaMovil)
+class AgendaClinicaMovilAdmin(admin.ModelAdmin):
+    list_display = (
+        "clinica",
+        "fecha",
+        "horario",
+        "lugar",
+        "cupos_totales",
+        "cupos_reservados",
+        "cupos_disponibles",
+        "estado",
+    )
+    list_filter = ("clinica", "estado", "fecha")
+    search_fields = ("lugar", "sector", "responsable", "clinica__nombre")

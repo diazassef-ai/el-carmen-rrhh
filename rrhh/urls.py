@@ -21,4 +21,9 @@ urlpatterns = [
     path("ausentes-hoy/", views.ausentes_hoy, name="rrhh_ausentes_hoy"),
     path("reportes/", views.reportes_excel, name="rrhh_reportes"),
     path("buscar/", views.busqueda_global, name="rrhh_busqueda"),
+    path("clinicas-moviles/", views.clinicas_moviles_lista, name="clinicas_moviles_lista"),
+    path("clinicas-moviles/nuevo/", views.clinicas_moviles_crear, name="clinicas_moviles_crear"),
+    path("clinicas-moviles/<int:pk>/editar/", views.clinicas_moviles_editar, name="clinicas_moviles_editar"),
+    path("clinicas-moviles/calendario/", views.clinicas_moviles_calendario, name="clinicas_moviles_calendario"),
+    path("clinicas-moviles/eventos/", views.clinicas_moviles_eventos, name="clinicas_moviles_eventos"),
 ]

@@ -14,8 +14,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-from .forms import DocumentoAdjuntoForm, FuncionarioForm, PermisoCapacitacionForm, ReporteExcelForm
-from .models import DocumentoAdjunto, Funcionario, PermisoCapacitacion, solicitudes_del_mes
+from .forms import AgendaClinicaMovilForm, DocumentoAdjuntoForm, FuncionarioForm, PermisoCapacitacionForm, ReporteExcelForm
+from .models import AgendaClinicaMovil, ClinicaMovil, DocumentoAdjunto, Funcionario, PermisoCapacitacion, solicitudes_del_mes
 
 
 PERFILES_RRHH = [
@@ -24,12 +24,17 @@ PERFILES_RRHH = [
     "Jefes de programa",
     "Solo Lectura",
     "Visualizacion calendario",
+    "Agendamiento clinicas moviles",
 ]
 PERFILES_OPERATIVOS = [
     "Administrador",
     "Secretaria",
     "Jefes de programa",
     "Solo Lectura",
+]
+PERFILES_CLINICAS_MOVILES = [
+    "Administrador",
+    "Agendamiento clinicas moviles",
 ]
 PERFILES_REPORTES = [
     "Administrador",
@@ -64,6 +69,21 @@ def puede_ver_operativo(user):
 
 def puede_ver_calendario(user):
     return user.is_authenticated and (user.is_superuser or tiene_perfil(user, PERFILES_RRHH))
+
+
+def puede_gestionar_clinicas_moviles(user):
+    return user.is_authenticated and (
+        user.is_superuser or tiene_perfil(user, PERFILES_CLINICAS_MOVILES)
+    )
+
+
+def es_solo_clinicas_moviles(user):
+    return (
+        user.is_authenticated
+        and not user.is_superuser
+        and user.groups.filter(name="Agendamiento clinicas moviles").exists()
+        and not user.groups.filter(name__in=PERFILES_OPERATIVOS).exists()
+    )
 
 
 def es_solo_calendario(user):
@@ -170,6 +190,8 @@ def construir_calendario_mensual(request):
 @login_required
 def dashboard(request):
     asegurar_grupos_rrhh()
+    if es_solo_clinicas_moviles(request.user):
+        return redirect("clinicas_moviles_calendario")
     if es_solo_calendario(request.user):
         return redirect("rrhh_calendario_visualizacion")
 
@@ -522,3 +544,99 @@ def busqueda_global(request):
             | Q(tipo_solicitud__icontains=q)
         )
     return render(request, "rrhh/busqueda.html", {"q": q, "funcionarios": funcionarios, "solicitudes": solicitudes})
+
+
+@login_required
+@user_passes_test(puede_gestionar_clinicas_moviles, login_url="rrhh_dashboard")
+def clinicas_moviles_lista(request):
+    q = request.GET.get("q", "").strip()
+    agendas = AgendaClinicaMovil.objects.select_related("clinica").all()
+    if q:
+        agendas = agendas.filter(
+            Q(clinica__nombre__icontains=q)
+            | Q(lugar__icontains=q)
+            | Q(sector__icontains=q)
+            | Q(responsable__icontains=q)
+        )
+
+    hoy = timezone.localdate()
+    proximas = agendas.filter(fecha__gte=hoy).count()
+    cupos_disponibles = sum(item.cupos_disponibles for item in agendas.filter(fecha__gte=hoy))
+    clinicas = ClinicaMovil.objects.filter(activa=True)
+    return render(request, "rrhh/clinicas_moviles_lista.html", {
+        "agendas": agendas[:120],
+        "q": q,
+        "proximas": proximas,
+        "cupos_disponibles": cupos_disponibles,
+        "clinicas": clinicas,
+    })
+
+
+@login_required
+@user_passes_test(puede_gestionar_clinicas_moviles, login_url="rrhh_dashboard")
+def clinicas_moviles_crear(request):
+    form = AgendaClinicaMovilForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        agenda = form.save()
+        messages.success(request, "Agendamiento de clinica movil guardado.")
+        return redirect("clinicas_moviles_lista")
+    return render(request, "rrhh/formulario.html", {
+        "form": form,
+        "titulo": "Nuevo agendamiento de clinica movil",
+        "boton": "Guardar agendamiento",
+    })
+
+
+@login_required
+@user_passes_test(puede_gestionar_clinicas_moviles, login_url="rrhh_dashboard")
+def clinicas_moviles_editar(request, pk):
+    agenda = get_object_or_404(AgendaClinicaMovil, pk=pk)
+    form = AgendaClinicaMovilForm(request.POST or None, instance=agenda)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Agendamiento actualizado.")
+        return redirect("clinicas_moviles_lista")
+    return render(request, "rrhh/formulario.html", {
+        "form": form,
+        "titulo": "Editar agendamiento de clinica movil",
+        "boton": "Guardar cambios",
+    })
+
+
+@login_required
+@user_passes_test(puede_gestionar_clinicas_moviles, login_url="rrhh_dashboard")
+def clinicas_moviles_calendario(request):
+    clinicas = ClinicaMovil.objects.filter(activa=True)
+    return render(request, "rrhh/clinicas_moviles_calendario.html", {"clinicas": clinicas})
+
+
+@login_required
+@user_passes_test(puede_gestionar_clinicas_moviles, login_url="rrhh_dashboard")
+def clinicas_moviles_eventos(request):
+    agendas = AgendaClinicaMovil.objects.select_related("clinica").exclude(estado="Suspendida")
+    eventos = []
+    for agenda in agendas:
+        start = f"{agenda.fecha.isoformat()}T{agenda.hora_inicio.isoformat()}"
+        end = ""
+        if agenda.hora_termino:
+            end = f"{agenda.fecha.isoformat()}T{agenda.hora_termino.isoformat()}"
+        eventos.append({
+            "id": agenda.pk,
+            "title": f"{agenda.clinica.nombre} - {agenda.lugar} ({agenda.cupos_disponibles} cupos)",
+            "start": start,
+            "end": end,
+            "color": agenda.color_calendario,
+            "extendedProps": {
+                "clinica": agenda.clinica.nombre,
+                "lugar": agenda.lugar,
+                "sector": agenda.sector,
+                "horario": agenda.horario,
+                "estado": agenda.estado,
+                "cuposTotales": agenda.cupos_totales,
+                "cuposReservados": agenda.cupos_reservados,
+                "cuposDisponibles": agenda.cupos_disponibles,
+                "responsable": agenda.responsable,
+                "editarUrl": f"/clinicas-moviles/{agenda.pk}/editar/",
+            },
+        })
+    return JsonResponse(eventos, safe=False)

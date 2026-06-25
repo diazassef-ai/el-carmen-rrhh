@@ -1,0 +1,54 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Agendamiento de Clinicas Moviles{% endblock %}
+{% block page_subtitle %}Programacion, lugares y cupos disponibles para las dos clinicas moviles.{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4"><div class="metric-card"><span>Clinicas activas</span><strong>{{ clinicas.count }}</strong></div></div>
+  <div class="col-md-4"><div class="metric-card"><span>Proximos agendamientos</span><strong>{{ proximas }}</strong></div></div>
+  <div class="col-md-4"><div class="metric-card"><span>Cupos disponibles</span><strong>{{ cupos_disponibles }}</strong></div></div>
+</div>
+<div class="panel-card p-3">
+  <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+    <form method="get" class="d-flex gap-2">
+      <input name="q" value="{{ q }}" class="form-control" placeholder="Buscar clinica, lugar, sector o responsable">
+      <button class="btn btn-outline-secondary">Buscar</button>
+    </form>
+    <div class="d-flex gap-2">
+      <a href="{% url 'clinicas_moviles_calendario' %}" class="btn btn-outline-primary">Calendario</a>
+      <a href="{% url 'clinicas_moviles_crear' %}" class="btn btn-rrhh">Nuevo agendamiento</a>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Horario</th>
+          <th>Clinica</th>
+          <th>Lugar</th>
+          <th>Cupos</th>
+          <th>Disponibles</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for agenda in agendas %}
+        <tr>
+          <td>{{ agenda.fecha }}</td>
+          <td>{{ agenda.horario }}</td>
+          <td class="fw-semibold">{{ agenda.clinica.nombre }}</td>
+          <td>{{ agenda.lugar }}{% if agenda.sector %}<br><span class="text-muted small">{{ agenda.sector }}</span>{% endif %}</td>
+          <td>{{ agenda.cupos_reservados }} / {{ agenda.cupos_totales }}</td>
+          <td><span class="badge text-bg-success">{{ agenda.cupos_disponibles }}</span></td>
+          <td>{{ agenda.estado }}</td>
+          <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'clinicas_moviles_editar' agenda.pk %}">Editar</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8" class="text-muted">Sin agendamientos registrados.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

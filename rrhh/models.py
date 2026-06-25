@@ -206,6 +206,79 @@ class DocumentoAdjunto(models.Model):
         super().save(*args, **kwargs)
 
 
+class ClinicaMovil(models.Model):
+    nombre = models.CharField(max_length=120, unique=True)
+    descripcion = models.CharField(max_length=240, blank=True)
+    activa = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["nombre"]
+        verbose_name = "Clinica movil"
+        verbose_name_plural = "Clinicas moviles"
+
+    def __str__(self):
+        return self.nombre
+
+
+class AgendaClinicaMovil(models.Model):
+    ESTADOS = [
+        ("Programada", "Programada"),
+        ("Confirmada", "Confirmada"),
+        ("Suspendida", "Suspendida"),
+        ("Realizada", "Realizada"),
+    ]
+
+    clinica = models.ForeignKey(
+        ClinicaMovil,
+        on_delete=models.PROTECT,
+        related_name="agendamientos",
+    )
+    fecha = models.DateField()
+    hora_inicio = models.TimeField()
+    hora_termino = models.TimeField(null=True, blank=True)
+    lugar = models.CharField(max_length=220)
+    sector = models.CharField(max_length=160, blank=True)
+    cupos_totales = models.PositiveIntegerField(default=0)
+    cupos_reservados = models.PositiveIntegerField(default=0)
+    responsable = models.CharField(max_length=160, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default="Programada")
+    observaciones = models.TextField(blank=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["fecha", "hora_inicio", "clinica__nombre"]
+        verbose_name = "Agendamiento de clinica movil"
+        verbose_name_plural = "Agendamientos de clinicas moviles"
+
+    def __str__(self):
+        return f"{self.clinica} - {self.fecha} {self.hora_inicio:%H:%M}"
+
+    def clean(self):
+        if self.hora_inicio and self.hora_termino and self.hora_termino <= self.hora_inicio:
+            raise ValidationError("La hora de termino debe ser posterior a la hora de inicio.")
+        if self.cupos_reservados > self.cupos_totales:
+            raise ValidationError("Los cupos reservados no pueden superar los cupos totales.")
+
+    @property
+    def cupos_disponibles(self):
+        return max(self.cupos_totales - self.cupos_reservados, 0)
+
+    @property
+    def horario(self):
+        if self.hora_termino:
+            return f"{self.hora_inicio:%H:%M} - {self.hora_termino:%H:%M}"
+        return f"{self.hora_inicio:%H:%M}"
+
+    @property
+    def color_calendario(self):
+        if self.estado == "Suspendida":
+            return "#dc2626"
+        if self.clinica.nombre.endswith("1"):
+            return "#0f766e"
+        return "#2563eb"
+
+
 def solicitudes_del_mes(fecha=None):
     fecha = fecha or timezone.localdate()
     return PermisoCapacitacion.objects.filter(
