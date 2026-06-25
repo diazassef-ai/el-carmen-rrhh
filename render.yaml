@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: python manage.py migrate && python manage.py crear_admin_inicial && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
     healthCheckPath: /login/
     envVars:
       - key: DJANGO_SECRET_KEY
@@ -19,3 +19,9 @@ services:
         value: https://*.onrender.com
       - key: PYTHON_VERSION
         value: "3.14.3"
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: admin
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: admin@example.com
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false

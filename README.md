@@ -37,11 +37,8 @@ Pasos:
 2. En Render, crear un `New Blueprint Instance`.
 3. Conectar el repositorio.
 4. Aplicar el blueprint.
-5. Cuando termine el deploy, abrir la Shell de Render y crear el primer administrador:
-
-```bash
-python manage.py createsuperuser
-```
+5. En las variables de entorno del servicio, completar `DJANGO_SUPERUSER_PASSWORD`.
+6. Hacer redeploy. El comando `crear_admin_inicial` creara o actualizara el usuario administrador.
 
 El blueprint crea:
 
@@ -60,6 +57,9 @@ Nota: este blueprint no crea PostgreSQL para evitar cobros en Render. Usa SQLite
 - `DATABASE_URL`
 - `DJANGO_SESSION_COOKIE_AGE`: segundos de duracion de sesion por inactividad. Valor por defecto: `1800`.
 - `DJANGO_IDLE_TIMEOUT_SECONDS`: segundos para cierre automatico en navegador. Valor por defecto: igual a `DJANGO_SESSION_COOKIE_AGE`.
+- `DJANGO_SUPERUSER_USERNAME`: usuario administrador inicial. Valor sugerido: `admin`.
+- `DJANGO_SUPERUSER_EMAIL`: correo del administrador inicial.
+- `DJANGO_SUPERUSER_PASSWORD`: clave del administrador inicial. Obligatoria en Render Free porque no hay Shell.
 
 ## Seguridad de sesion
 
