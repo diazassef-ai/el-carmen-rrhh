@@ -640,6 +640,9 @@ def clinicas_moviles_estadisticas(request):
     ], start=1)]
     contexto["anios"] = range(hoy.year - 2, hoy.year + 2)
 
+    if request.GET.get("exportar") == "excel":
+        return construir_excel_clinicas_moviles(contexto)
+
     if request.method == "POST":
         if not contexto["destinatarios"]:
             messages.warning(request, "No hay correos configurados para enviar el resumen.")
@@ -649,6 +652,87 @@ def clinicas_moviles_estadisticas(request):
         return redirect(f"{request.path}?anio={anio}&mes={mes}")
 
     return render(request, "rrhh/clinicas_moviles_estadisticas.html", contexto)
+
+
+def construir_excel_clinicas_moviles(datos):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Resumen"
+
+    escribir_tabla(ws, ["Indicador", "Valor"], [
+        ["Periodo", datos["periodo"]],
+        ["Agendamientos", datos["totales"]["total"]],
+        ["Cupos totales", datos["totales"]["cupos_totales"]],
+        ["Cupos reservados", datos["totales"]["cupos_reservados"]],
+        ["Cupos disponibles", datos["totales"]["cupos_disponibles"]],
+        ["Ocupacion", f"{datos['totales']['ocupacion']}%"],
+    ])
+
+    ws_clinica = wb.create_sheet("Por clinica")
+    escribir_tabla(ws_clinica, [
+        "Clinica", "Agendamientos", "Cupos totales", "Cupos reservados",
+        "Cupos disponibles", "Ocupacion",
+    ], [
+        [
+            item["clinica__nombre"],
+            item["total"],
+            item["cupos_totales"],
+            item["cupos_reservados"],
+            item["cupos_disponibles"],
+            f"{item['ocupacion']}%",
+        ]
+        for item in datos["por_clinica"]
+    ])
+
+    ws_lugar = wb.create_sheet("Por lugar")
+    escribir_tabla(ws_lugar, [
+        "Lugar", "Sector", "Agendamientos", "Cupos totales", "Cupos reservados",
+    ], [
+        [
+            item["lugar"],
+            item["sector"] or "",
+            item["total"],
+            item["cupos_totales"] or 0,
+            item["cupos_reservados"] or 0,
+        ]
+        for item in datos["por_lugar"]
+    ])
+
+    ws_detalle = wb.create_sheet("Detalle")
+    escribir_tabla(ws_detalle, [
+        "Fecha", "Hora inicio", "Hora termino", "Clinica", "Lugar", "Sector",
+        "Cupos totales", "Cupos reservados", "Cupos disponibles", "Estado",
+        "Responsable", "Agendado por", "Correo agendador", "Observaciones",
+    ], [
+        [
+            agenda.fecha,
+            agenda.hora_inicio.strftime("%H:%M"),
+            agenda.hora_termino.strftime("%H:%M") if agenda.hora_termino else "",
+            agenda.clinica.nombre,
+            agenda.lugar,
+            agenda.sector,
+            agenda.cupos_totales,
+            agenda.cupos_reservados,
+            agenda.cupos_disponibles,
+            agenda.estado,
+            agenda.responsable,
+            agenda.creado_por.get_full_name() or agenda.creado_por.username if agenda.creado_por else "",
+            agenda.creado_por.email if agenda.creado_por else "",
+            agenda.observaciones,
+        ]
+        for agenda in datos["agendas"]
+    ])
+
+    for sheet in wb.worksheets:
+        ajustar_hoja(sheet)
+
+    filename = f"estadisticas_clinicas_moviles_{datos['anio']}_{datos['mes']:02d}.xlsx"
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    wb.save(response)
+    return response
 
 
 @login_required
