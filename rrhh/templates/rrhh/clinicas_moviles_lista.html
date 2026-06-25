@@ -43,7 +43,13 @@
           <td>{{ agenda.lugar }}{% if agenda.sector %}<br><span class="text-muted small">{{ agenda.sector }}</span>{% endif %}</td>
           <td>{{ agenda.cupos_reservados }} / {{ agenda.cupos_totales }}</td>
           <td><span class="badge text-bg-success">{{ agenda.cupos_disponibles }}</span></td>
-          <td>{{ agenda.creado_por.get_full_name|default:agenda.creado_por.username|default:"-" }}</td>
+          <td>
+            {% if agenda.creado_por %}
+              {{ agenda.creado_por.get_full_name|default:agenda.creado_por.username }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
           <td>{{ agenda.estado }}</td>
           <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'clinicas_moviles_editar' agenda.pk %}">Editar</a></td>
         </tr>
