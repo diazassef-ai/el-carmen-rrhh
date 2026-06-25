@@ -61,7 +61,11 @@ Nota: este blueprint no crea PostgreSQL para evitar cobros en Render. Usa SQLite
 - `DJANGO_SUPERUSER_EMAIL`: correo del administrador inicial.
 - `DJANGO_SUPERUSER_PASSWORD`: clave del administrador inicial. Obligatoria en Render Free porque no hay Shell.
 - `DJANGO_CLINICAS_USERNAME`: usuario operativo para clinicas moviles. Valor sugerido: `clinicas`.
+- `DJANGO_CLINICAS_EMAIL`: correo del usuario operativo de clinicas moviles.
 - `DJANGO_CLINICAS_PASSWORD`: clave del usuario operativo de clinicas moviles.
+- `DJANGO_CLINICAS_REPORT_EMAILS`: correos extra para recibir estadisticas de clinicas, separados por coma.
+- `EMAIL_BACKEND`: backend de correo. En local usa consola por defecto.
+- `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL`: configuracion SMTP para envio real.
 
 ## Seguridad de sesion
 
@@ -70,3 +74,17 @@ La plataforma cierra la sesion por inactividad a nivel servidor y navegador. Al 
 ## Clinicas moviles
 
 El sistema incluye un modulo para agendar dos clinicas moviles, registrar lugar, sector, horario, cupos totales y cupos reservados. El calendario muestra los cupos disponibles por agendamiento.
+
+La seccion `Clinicas Moviles > Estadisticas Clinicas` permite revisar estadisticas por mes, ver cupos por clinica y lugar, y enviar el resumen mensual a los correos vinculados. El envio considera usuarios activos del grupo `Agendamiento clinicas moviles` que tengan email y los correos definidos en `DJANGO_CLINICAS_REPORT_EMAILS`.
+
+Para automatizar el envio mensual, programe el comando:
+
+```powershell
+python manage.py enviar_estadisticas_clinicas
+```
+
+Tambien se puede enviar un periodo especifico:
+
+```powershell
+python manage.py enviar_estadisticas_clinicas --anio 2026 --mes 6
+```

@@ -25,5 +25,6 @@ urlpatterns = [
     path("clinicas-moviles/nuevo/", views.clinicas_moviles_crear, name="clinicas_moviles_crear"),
     path("clinicas-moviles/<int:pk>/editar/", views.clinicas_moviles_editar, name="clinicas_moviles_editar"),
     path("clinicas-moviles/calendario/", views.clinicas_moviles_calendario, name="clinicas_moviles_calendario"),
+    path("clinicas-moviles/estadisticas/", views.clinicas_moviles_estadisticas, name="clinicas_moviles_estadisticas"),
     path("clinicas-moviles/eventos/", views.clinicas_moviles_eventos, name="clinicas_moviles_eventos"),
 ]

@@ -14,6 +14,11 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 
+from .clinicas_reportes import (
+    construir_estadisticas_clinicas,
+    correos_reportes_clinicas,
+    enviar_estadisticas_clinicas,
+)
 from .forms import AgendaClinicaMovilForm, DocumentoAdjuntoForm, FuncionarioForm, PermisoCapacitacionForm, ReporteExcelForm
 from .models import AgendaClinicaMovil, ClinicaMovil, DocumentoAdjunto, Funcionario, PermisoCapacitacion, solicitudes_del_mes
 
@@ -577,7 +582,10 @@ def clinicas_moviles_lista(request):
 def clinicas_moviles_crear(request):
     form = AgendaClinicaMovilForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        agenda = form.save()
+        agenda = form.save(commit=False)
+        agenda.creado_por = request.user
+        agenda.actualizado_por = request.user
+        agenda.save()
         messages.success(request, "Agendamiento de clinica movil guardado.")
         return redirect("clinicas_moviles_lista")
     return render(request, "rrhh/formulario.html", {
@@ -593,7 +601,9 @@ def clinicas_moviles_editar(request, pk):
     agenda = get_object_or_404(AgendaClinicaMovil, pk=pk)
     form = AgendaClinicaMovilForm(request.POST or None, instance=agenda)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        agenda = form.save(commit=False)
+        agenda.actualizado_por = request.user
+        agenda.save()
         messages.success(request, "Agendamiento actualizado.")
         return redirect("clinicas_moviles_lista")
     return render(request, "rrhh/formulario.html", {
@@ -612,8 +622,39 @@ def clinicas_moviles_calendario(request):
 
 @login_required
 @user_passes_test(puede_gestionar_clinicas_moviles, login_url="rrhh_dashboard")
+def clinicas_moviles_estadisticas(request):
+    hoy = timezone.localdate()
+    try:
+        anio = int(request.GET.get("anio", hoy.year))
+        mes = int(request.GET.get("mes", hoy.month))
+        date(anio, mes, 1)
+    except (TypeError, ValueError):
+        anio = hoy.year
+        mes = hoy.month
+
+    contexto = construir_estadisticas_clinicas(anio, mes)
+    contexto["destinatarios"] = correos_reportes_clinicas()
+    contexto["meses"] = [(idx, nombre.capitalize()) for idx, nombre in enumerate([
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+    ], start=1)]
+    contexto["anios"] = range(hoy.year - 2, hoy.year + 2)
+
+    if request.method == "POST":
+        if not contexto["destinatarios"]:
+            messages.warning(request, "No hay correos configurados para enviar el resumen.")
+        else:
+            enviados = enviar_estadisticas_clinicas(anio, mes, contexto["destinatarios"])
+            messages.success(request, f"Resumen enviado a {enviados} destinatario(s).")
+        return redirect(f"{request.path}?anio={anio}&mes={mes}")
+
+    return render(request, "rrhh/clinicas_moviles_estadisticas.html", contexto)
+
+
+@login_required
+@user_passes_test(puede_gestionar_clinicas_moviles, login_url="rrhh_dashboard")
 def clinicas_moviles_eventos(request):
-    agendas = AgendaClinicaMovil.objects.select_related("clinica").exclude(estado="Suspendida")
+    agendas = AgendaClinicaMovil.objects.select_related("clinica", "creado_por").exclude(estado="Suspendida")
     eventos = []
     for agenda in agendas:
         start = f"{agenda.fecha.isoformat()}T{agenda.hora_inicio.isoformat()}"
@@ -636,6 +677,7 @@ def clinicas_moviles_eventos(request):
                 "cuposReservados": agenda.cupos_reservados,
                 "cuposDisponibles": agenda.cupos_disponibles,
                 "responsable": agenda.responsable,
+                "agendadoPor": agenda.creado_por.get_full_name() or agenda.creado_por.username if agenda.creado_por else "",
                 "editarUrl": f"/clinicas-moviles/{agenda.pk}/editar/",
             },
         })

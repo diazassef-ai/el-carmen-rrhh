@@ -34,6 +34,7 @@
       {% if user.is_superuser or user|has_any_group:"Administrador,Agendamiento clinicas moviles" %}
       <a href="{% url 'clinicas_moviles_calendario' %}"><span class="material-symbols-outlined">local_shipping</span>Clinicas Moviles</a>
       <a href="{% url 'clinicas_moviles_lista' %}"><span class="material-symbols-outlined">event_note</span>Agendamientos</a>
+      <a href="{% url 'clinicas_moviles_estadisticas' %}"><span class="material-symbols-outlined">monitoring</span>Estadisticas Clinicas</a>
       {% endif %}
       {% if user.is_superuser or user|has_any_group:"Administrador,Secretaria,Jefes de programa,Solo Lectura,Visualizacion calendario" %}
       <a href="{% url 'rrhh_calendario_visualizacion' %}"><span class="material-symbols-outlined">event_available</span>Vista Calendario</a>

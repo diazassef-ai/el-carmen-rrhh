@@ -27,5 +27,11 @@ services:
         sync: false
       - key: DJANGO_CLINICAS_USERNAME
         value: clinicas
+      - key: DJANGO_CLINICAS_EMAIL
+        sync: false
       - key: DJANGO_CLINICAS_PASSWORD
+        sync: false
+      - key: DJANGO_CLINICAS_REPORT_EMAILS
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
         sync: false

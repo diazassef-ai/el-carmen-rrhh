@@ -1,0 +1,130 @@
+{% extends "rrhh/base.html" %}
+{% block page_title %}Estadisticas de Clinicas Moviles{% endblock %}
+{% block page_subtitle %}Resumen mensual de agenda, cupos y correos vinculados al agendamiento.{% endblock %}
+{% block content %}
+<div class="panel-card p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label">Mes</label>
+      <select name="mes" class="form-select">
+        {% for valor,nombre in meses %}
+          <option value="{{ valor }}" {% if valor == mes %}selected{% endif %}>{{ nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Ano</label>
+      <select name="anio" class="form-select">
+        {% for valor in anios %}
+          <option value="{{ valor }}" {% if valor == anio %}selected{% endif %}>{{ valor }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6 d-flex flex-wrap gap-2">
+      <button class="btn btn-rrhh">Ver estadisticas</button>
+      <a href="{% url 'clinicas_moviles_calendario' %}" class="btn btn-outline-secondary">Calendario</a>
+      <a href="{% url 'clinicas_moviles_lista' %}" class="btn btn-outline-secondary">Lista</a>
+    </div>
+  </form>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="metric-card"><span>Agendamientos</span><strong>{{ totales.total }}</strong></div></div>
+  <div class="col-md-3"><div class="metric-card"><span>Cupos totales</span><strong>{{ totales.cupos_totales }}</strong></div></div>
+  <div class="col-md-3"><div class="metric-card"><span>Reservados</span><strong>{{ totales.cupos_reservados }}</strong></div></div>
+  <div class="col-md-3"><div class="metric-card"><span>Ocupacion</span><strong>{{ totales.ocupacion }}%</strong></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="panel-card p-3 h-100">
+      <h2 class="h5 mb-3">Resumen por clinica - {{ periodo }}</h2>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Clinica</th>
+              <th>Agendas</th>
+              <th>Cupos</th>
+              <th>Disponibles</th>
+              <th>Ocupacion</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for item in por_clinica %}
+            <tr>
+              <td class="fw-semibold">{{ item.clinica__nombre }}</td>
+              <td>{{ item.total }}</td>
+              <td>{{ item.cupos_reservados }} / {{ item.cupos_totales }}</td>
+              <td>{{ item.cupos_disponibles }}</td>
+              <td>{{ item.ocupacion }}%</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-muted">Sin agendamientos en este periodo.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel-card p-3 h-100">
+      <h2 class="h5 mb-3">Correos de agendamiento</h2>
+      {% if destinatarios %}
+        <ul class="list-group list-group-flush mb-3">
+          {% for correo in destinatarios %}
+            <li class="list-group-item px-0">{{ correo }}</li>
+          {% endfor %}
+        </ul>
+        <form method="post">
+          {% csrf_token %}
+          <button class="btn btn-rrhh w-100">Enviar resumen mensual</button>
+        </form>
+      {% else %}
+        <p class="text-muted mb-0">Agrega correo al usuario de clinicas o configura DJANGO_CLINICAS_REPORT_EMAILS.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="panel-card p-3 mt-3">
+  <h2 class="h5 mb-3">Detalle por lugar</h2>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Lugar</th>
+          <th>Sector</th>
+          <th>Agendas</th>
+          <th>Cupos</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for item in por_lugar %}
+        <tr>
+          <td>{{ item.lugar }}</td>
+          <td>{{ item.sector|default:"-" }}</td>
+          <td>{{ item.total }}</td>
+          <td>{{ item.cupos_reservados }} / {{ item.cupos_totales }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-muted">Sin lugares registrados en este periodo.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panel-card p-3 mt-3">
+  <h2 class="h5 mb-3">Usuarios que agendaron</h2>
+  <div class="d-flex flex-wrap gap-2">
+    {% for usuario in usuarios_agendamiento %}
+      <span class="badge text-bg-light border">
+        {{ usuario.get_full_name|default:usuario.username }}{% if usuario.email %} - {{ usuario.email }}{% endif %}
+      </span>
+    {% empty %}
+      <span class="text-muted">Aun no hay usuarios vinculados a agendamientos de este mes.</span>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

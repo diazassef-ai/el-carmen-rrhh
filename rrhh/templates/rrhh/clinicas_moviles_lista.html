@@ -15,6 +15,7 @@
     </form>
     <div class="d-flex gap-2">
       <a href="{% url 'clinicas_moviles_calendario' %}" class="btn btn-outline-primary">Calendario</a>
+      <a href="{% url 'clinicas_moviles_estadisticas' %}" class="btn btn-outline-secondary">Estadisticas</a>
       <a href="{% url 'clinicas_moviles_crear' %}" class="btn btn-rrhh">Nuevo agendamiento</a>
     </div>
   </div>
@@ -28,6 +29,7 @@
           <th>Lugar</th>
           <th>Cupos</th>
           <th>Disponibles</th>
+          <th>Agendado por</th>
           <th>Estado</th>
           <th></th>
         </tr>
@@ -41,11 +43,12 @@
           <td>{{ agenda.lugar }}{% if agenda.sector %}<br><span class="text-muted small">{{ agenda.sector }}</span>{% endif %}</td>
           <td>{{ agenda.cupos_reservados }} / {{ agenda.cupos_totales }}</td>
           <td><span class="badge text-bg-success">{{ agenda.cupos_disponibles }}</span></td>
+          <td>{{ agenda.creado_por.get_full_name|default:agenda.creado_por.username|default:"-" }}</td>
           <td>{{ agenda.estado }}</td>
           <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'clinicas_moviles_editar' agenda.pk %}">Editar</a></td>
         </tr>
       {% empty %}
-        <tr><td colspan="8" class="text-muted">Sin agendamientos registrados.</td></tr>
+        <tr><td colspan="9" class="text-muted">Sin agendamientos registrados.</td></tr>
       {% endfor %}
       </tbody>
     </table>

@@ -47,6 +47,7 @@ class AgendaClinicaMovilAdmin(admin.ModelAdmin):
         "cupos_reservados",
         "cupos_disponibles",
         "estado",
+        "creado_por",
     )
-    list_filter = ("clinica", "estado", "fecha")
-    search_fields = ("lugar", "sector", "responsable", "clinica__nombre")
+    list_filter = ("clinica", "estado", "fecha", "creado_por")
+    search_fields = ("lugar", "sector", "responsable", "clinica__nombre", "creado_por__username")
