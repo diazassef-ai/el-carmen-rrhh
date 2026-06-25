@@ -46,8 +46,9 @@ python manage.py createsuperuser
 El blueprint crea:
 
 - Web service `el-carmen-rrhh`
-- Base PostgreSQL `el-carmen-rrhh-db`
 - Variables de entorno de produccion
+
+Nota: este blueprint no crea PostgreSQL para evitar cobros en Render. Usa SQLite para pruebas. Para uso institucional real se recomienda agregar PostgreSQL o un servicio de base de datos persistente.
 
 ## Variables de produccion
 
